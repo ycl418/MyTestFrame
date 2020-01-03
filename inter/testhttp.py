@@ -4,7 +4,7 @@ from inter.webkeys import HTTP
 # 创建一个http请求库的实例对象
 http = HTTP()
 # 设置基础地址
-http.setUrl('http://10.2.2.128:38080/interface/HTTP//')
+http.seturl('http://10.2.2.128:38080/interface/HTTP//')
 # 授权
 http.post('auth', None)
 print(http.jsonres)

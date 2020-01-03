@@ -4,7 +4,7 @@ import requests, json
 
 # 关键字封装
 class HTTP:
-    def __init__(self):
+    def __init__(self, writer):
         # session管理(不用每请求一次都加一次token)
         self.session = requests.session()
         # 基础的host地址
@@ -15,13 +15,20 @@ class HTTP:
         # 关联保存参数的字典
         self.relations = {}
 
-    def setUrl(self, url):
+        # 写入excel文件的Excel.Writer对象
+        self.writer = writer
+        # 记录当前写入的列
+        self.row = 0
+
+    def seturl(self, url):
         """
         设置基本url地址
         :param url:
         :return:
         """
         self.url = url
+        self.__write_excel_res('PASS','设置成功:'+self.url)
+
 
     def post(self, path, params):
         """
@@ -32,7 +39,11 @@ class HTTP:
         """
         params = self.__get_relation(params)
         self.result = self.session.post(self.url + path, data=self.__get_data(params))
-        self.jsonres = json.loads(self.result.text)
+        try:
+            self.jsonres = json.loads(self.result.text)
+        except Exception as e:
+            self.jsonres = None
+        self.__write_excel_res('PASS', self.result.text)
 
     def addheader(self, key, value):
         """
@@ -43,6 +54,19 @@ class HTTP:
         """
         value = self.__get_relation(value)
         self.session.headers[key] = value
+        self.__write_excel_res('PASS', '添加成功:'+ str(self.session.headers))
+
+    def removeheader(self, key):
+        """
+        删除头里面的某一个键值对
+        :param key:要删除的键
+        :return:
+        """
+        try:
+            self.session.headers.pop(key)
+        except Exception as e:
+            pass
+        self.__write_excel_res('PASS', '删除成功:'+ str(self.session.headers))
 
     def __get_data(self, params):
         """
@@ -78,7 +102,12 @@ class HTTP:
         :param param_name:保存后参数的名字
         :return:无
         """
-        self.relations[param_name] = self.jsonres[key]
+        try:
+            self.relations[param_name] = self.jsonres[key]
+            self.__write_excel_res('PASS', str(self.relations))
+        except Exception as e:
+            self.relations[param_name] = ''
+            self.__write_excel_res('FAIL', str(self.relations))
 
     def __get_relation(self, params):
         """
@@ -94,3 +123,30 @@ class HTTP:
             for key in self.relations:
                 params = params.replace('{' + key + '}', self.relations[key])
         return params
+
+    def assertequals(self, key, value):
+        """
+        判断json结果里面某个键的值是否和期望值value相等
+        :param key:json的键
+        :param value:期望值
+        :return:是否相等
+        """
+        res = None
+        try:
+            res = str(self.jsonres[key])
+        except Exception as e:
+            pass
+        # 关联
+        value = self.__get_relation(value)
+        if res == value:
+            print('PASS')
+            self.__write_excel_res('PASS',res)
+            return True
+        else:
+            print('FAIL')
+            self.__write_excel_res('FAIL', res)
+            return False
+
+    def __write_excel_res(self, status, msg):
+        self.writer.write(self.row, 7, status)
+        self.writer.write(self.row, 8, msg)
