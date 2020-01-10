@@ -2,6 +2,7 @@
 
 import os, xlrd
 from xlutils.copy import copy
+from sensei_common.logger import logger
 
 
 class Reader:
@@ -26,7 +27,7 @@ class Reader:
         """
         # 如果打开的文件不存在,就报错
         if not os.path.isfile(srcfile):
-            print("错误:%s不存在" % srcfile)
+            logger.warning("错误:%s不存在" % srcfile)
             return
         # 设置读取excel使用utf8编码
         xlrd.Book.encoding = "utf8"
@@ -47,7 +48,7 @@ class Reader:
         """
         # 获取所有sheet的名字,并返回一个列表
         sheets = self.workbook.sheet_names()
-        print(sheets)
+        logger.info(sheets)
         return sheets
 
     def set_sheet(self, name):
@@ -110,11 +111,11 @@ class Writer:
         """
         # 判断要复制的文档是否存在,
         if not os.path.isfile(srcfile):
-            print(srcfile + "不存在")
+            logger.warning(srcfile + "不存在")
             return
         # 判断要新建的文档是否已经存在,存在则提示
         if os.path.isfile(dstfile):
-            print("错误:" + dstfile + "文件已经存在!")
+            logger.warning("错误:" + dstfile + "文件已经存在!")
 
         # 记录要保存的文件
         self.df = dstfile
@@ -133,7 +134,7 @@ class Writer:
         :return: 所有sheet名字的列表
         """
         sheets = self.workbook.sheet_names()
-        print(sheets)
+        logger.info(sheets)
         return sheets
 
     def set_sheet(self, name):
@@ -193,7 +194,7 @@ if __name__ == '__main__':
         # 设置当前读取的sheet页面
         reader.set_sheet(sheet)
         for i in range(reader.rows):
-            print(reader.readline())
+            logger.info(reader.readline())
 
     writer = Writer()
     writer.copy_open('../lib/cases/HTTP接口用例.xls', '../lib/results/result-HTTP接口用例.xls')

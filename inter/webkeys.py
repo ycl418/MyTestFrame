@@ -1,5 +1,6 @@
 # -*- coding: UTF-8 -*-
 import requests, json
+from sensei_common.logger import logger
 
 
 # 关键字封装
@@ -139,11 +140,11 @@ class HTTP:
         # 关联
         value = self.__get_relation(value)
         if res == value:
-            print('PASS')
+            logger.info('PASS')
             self.__write_excel_res('PASS',res)
             return True
         else:
-            print('FAIL')
+            logger.error('FAIL')
             self.__write_excel_res('FAIL', res)
             return False
 
